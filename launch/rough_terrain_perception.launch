@@ -1,0 +1,73 @@
+<!-- -
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the MIT License.
+- -->
+
+<launch>
+  <arg name="tf_prefix"         default="" />                       <!-- - Prefix added to tf frame IDs. It typically contains a trailing '_' unless empty. - -->
+  <arg name="overwrite_robot_description" default="true" />         <!-- - Flag to publish a standalone azure_description instead of the default robot_descrition parameter- -->
+
+  <group if="$(arg overwrite_robot_description)">
+    <param name="robot_description"
+      command="xacro $(find azure_kinect_ros_driver)/urdf/azure_kinect.urdf.xacro tf_prefix:=$(arg tf_prefix)" />
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+
+  <group unless="$(arg overwrite_robot_description)">
+    <param name="azure_description"
+      command="xacro $(find azure_kinect_ros_driver)/urdf/azure_kinect.urdf.xacro tf_prefix:=$(arg tf_prefix)" />
+    <node name="joint_state_publisher_azure" pkg="joint_state_publisher" type="joint_state_publisher">
+      <remap from="robot_description" to="azure_description" />
+    </node>  
+    <node name="robot_state_publisher_azure" pkg="robot_state_publisher" type="robot_state_publisher">
+      <remap from="robot_description" to="azure_description" />
+    </node>
+  </group>
+
+  <arg name="depth_enabled"           default="true" />           <!-- ○ 深度カメラを有効または無効にします -->
+  <arg name="depth_mode"              default="NFOV_UNBINNED" />  <!-- ○ 深度カメラモードを設定します。これは、FOV、深度範囲、およびカメラ解像度に影響します。詳細については、AzureKinectのドキュメントを参照してください。有効なオプション：NFOV_UNBINNED、NFOV_2X2BINNED、WFOV_UNBINNED、WFOV_2X2BINNED、およびPASSIVE_IR -->
+  <arg name="depth_unit"              default="16UC1" />          <!-- 深さの距離の単位。オプションは次のとおりです。「32FC1」（32ビット浮動小数点メートル）または「16UC1」（16ビット整数ミリメートル） -->
+  <arg name="color_enabled"           default="false" />          <!-- ○ カラーカメラを有効または無効にします -->
+  <arg name="color_format"            default="bgra" />           <!-- RGBカメラのフォーマット。有効なオプション：bgra、jpeg -->
+  <arg name="color_resolution"        default="1536P" />          <!-- ○ カラーカメラを実行する解像度。有効なオプション：720P、1080P、1440P、1536P、2160P、3072P -->
+  <arg name="fps"                     default="30" />             <!-- ○ で両方のカメラを実行するFPS。有効なオプションは5、15、および30です -->
+  <arg name="point_cloud"             default="false" />          <!-- ○ 深度データから点群を生成します。 depth_enabledが必要です -->
+  <arg name="rgb_point_cloud"         default="false" />          <!-- ○ RBGカメラを使用して点群を色付けします。 color_enabledとdepth_enabledが必要です -->
+  <arg name="point_cloud_in_depth_frame" default="true" />        <!-- ○ RGBポイントクラウドが深度フレーム（true）またはRGBフレーム（false）のどちらでレンダリングされるか。デプスカメラ（true）またはRGBカメラ（false）の解像度と一致します。  -->
+  <arg name="required"                default="false" />          <!-- ノードが停止した場合に起動ファイル全体を終了するかどうかを指定した引数 -->
+  <arg name="sensor_sn"               default="" />               <!-- センサーのシリアル番号。何も指定されていない場合、最初のセンサーが選択されます -->
+  <arg name="recording_file"          default="" />               <!-- デバイスを開く代わりに再生APIで使用されるmkv記録ファイルへの絶対パス -->
+  <arg name="recording_loop_enabled"  default="false" />          <!-- trueに設定すると、ファイルの終わりに達すると、録音ファイルは最初を巻き戻します -->
+  <arg name="body_tracking_enabled"           default="false" />  <!-- trueに設定すると、ジョイント位置はマーカー配列として公開されます -->
+  <arg name="body_tracking_smoothing_factor"  default="0.0" />    <!-- スムージングなしの場合は0、完全スムージングの場合は1の間に設定します -->
+  <arg name="rescale_ir_to_mono8"  default="false" />             <!-- 視覚化とさらなる処理のためにIR画像を8ビットモノクロ画像に再スケーリングするかどうか。スケーリング係数（ir_mono8_scaling_factor）が適用されます。  -->
+  <arg name="ir_mono8_scaling_factor"  default="1.0" />           <!-- IRをmono8に変換するときに適用するスケーリング係数（rescale_ir_to_mono8を参照）。照明を使用する場合は、値0.5-1を使用します。パッシブIRを使用する場合は、10を使用します。 -->
+  <arg name="imu_rate_target" default="0"/>                       <!-- IMUメッセージの望ましい出力レート。フルレート（1.6 kHz）の場合は0（デフォルト）に設定します。  -->
+  <arg name="wired_sync_mode" default="0"/>                       <!-- 有線同期モード。 0：オフ、1：マスター、2：従属。  -->
+  <arg name="subordinate_delay_off_master_usec" default="0"/>     <!-- usecで、従属カメラをマスターカメラから指定された量だけ遅らせます。  -->
+
+  <node pkg="azure_kinect_ros_driver" type="node" name="azure_kinect_ros_driver" output="screen" required="$(arg required)">
+    <param name="depth_enabled"     type="bool"   value="$(arg depth_enabled)" />
+    <param name="depth_mode"        type="string" value="$(arg depth_mode)" />
+    <param name="depth_unit"        type="string" value="$(arg depth_unit)" />
+    <param name="color_enabled"     type="bool"   value="$(arg color_enabled)" />
+    <param name="color_format"      type="string" value="$(arg color_format)" />
+    <param name="color_resolution"  type="string" value="$(arg color_resolution)" />
+    <param name="fps"               type="int"    value="$(arg fps)" />
+    <param name="point_cloud"       type="bool"   value="$(arg point_cloud)" />
+    <param name="rgb_point_cloud"   type="bool"   value="$(arg rgb_point_cloud)" />
+    <param name="point_cloud_in_depth_frame"   type="bool"   value="$(arg point_cloud_in_depth_frame)" />
+    <param name="sensor_sn"         type="string" value="$(arg sensor_sn)" />
+    <param name="tf_prefix"         type="string" value="$(arg tf_prefix)" />
+    <param name="recording_file"          type="string" value="$(arg recording_file)" />
+    <param name="recording_loop_enabled"  type="bool"   value="$(arg recording_loop_enabled)" />
+    <param name="body_tracking_enabled"           type="bool"   value="$(arg body_tracking_enabled)" />
+    <param name="body_tracking_smoothing_factor"  type="double" value="$(arg body_tracking_smoothing_factor)" />
+    <param name="rescale_ir_to_mono8" type="bool" value="$(arg rescale_ir_to_mono8)" />
+    <param name="ir_mono8_scaling_factor" type="double" value="$(arg ir_mono8_scaling_factor)" />
+    <param name="imu_rate_target" type="int" value="$(arg imu_rate_target)"/>
+    <param name="wired_sync_mode" type="int" value="$(arg wired_sync_mode)"/>
+    <param name="subordinate_delay_off_master_usec" type="int" value="$(arg subordinate_delay_off_master_usec)"/>
+  </node>
+</launch>
