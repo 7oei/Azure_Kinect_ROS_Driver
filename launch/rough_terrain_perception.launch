@@ -32,7 +32,7 @@ Licensed under the MIT License.
   <arg name="color_format"            default="bgra" />           <!-- RGBカメラのフォーマット。有効なオプション：bgra、jpeg -->
   <arg name="color_resolution"        default="1536P" />          <!-- ○ カラーカメラを実行する解像度。有効なオプション：720P、1080P、1440P、1536P、2160P、3072P -->
   <arg name="fps"                     default="30" />             <!-- ○ で両方のカメラを実行するFPS。有効なオプションは5、15、および30です -->
-  <arg name="point_cloud"             default="false" />          <!-- ○ 深度データから点群を生成します。 depth_enabledが必要です -->
+  <arg name="point_cloud"             default="true" />          <!-- ○ 深度データから点群を生成します。 depth_enabledが必要です -->
   <arg name="rgb_point_cloud"         default="false" />          <!-- ○ RBGカメラを使用して点群を色付けします。 color_enabledとdepth_enabledが必要です -->
   <arg name="point_cloud_in_depth_frame" default="true" />        <!-- ○ RGBポイントクラウドが深度フレーム（true）またはRGBフレーム（false）のどちらでレンダリングされるか。デプスカメラ（true）またはRGBカメラ（false）の解像度と一致します。  -->
   <arg name="required"                default="false" />          <!-- ノードが停止した場合に起動ファイル全体を終了するかどうかを指定した引数 -->
