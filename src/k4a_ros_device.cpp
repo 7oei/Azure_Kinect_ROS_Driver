@@ -610,7 +610,7 @@ k4a_result_t K4AROSDevice::fillColorPointCloud(const k4a::image& pointcloud_imag
 {
   point_cloud->height = pointcloud_image.get_height_pixels();
   point_cloud->width = pointcloud_image.get_width_pixels();
-  point_cloud->is_dense = true;
+  point_cloud->is_dense = false;
   point_cloud->is_bigendian = false;
 
   const size_t point_count = pointcloud_image.get_height_pixels() * pointcloud_image.get_width_pixels();
@@ -668,7 +668,7 @@ k4a_result_t K4AROSDevice::fillPointCloud(const k4a::image& pointcloud_image, se
 {
   point_cloud->height = pointcloud_image.get_height_pixels();
   point_cloud->width = pointcloud_image.get_width_pixels();
-  point_cloud->is_dense = true;
+  point_cloud->is_dense = false;
   point_cloud->is_bigendian = false;
 
   const size_t point_count = pointcloud_image.get_height_pixels() * pointcloud_image.get_width_pixels();
@@ -1188,11 +1188,6 @@ void K4AROSDevice::framePublisherThread()
 
       if (params_.point_cloud || params_.rgb_point_cloud)
       {
-        point_cloud->height = calibration_data_.point_cloud_image_.get_height_pixels();
-        point_cloud->width = calibration_data_.point_cloud_image_.get_width_pixels();
-        point_cloud->is_dense = true;
-        point_cloud->is_bigendian = true;
-        std::cout<<"("<<point_cloud->height<<"x"<<point_cloud->width<<") size="<<point_cloud->data.size()<<std::endl;
         pointcloud_publisher_.publish(point_cloud);
       }
     }
